@@ -11,7 +11,7 @@ class Graph:
         self.vertices = set()
     
     def add_edge(self, u, v, weight=1):
-        """Adiciona uma aresta ao grafo"""
+        # adiciona uma aresta ao grafo
         self.vertices.add(u)
         self.vertices.add(v)
         
@@ -22,11 +22,11 @@ class Graph:
             self.adjacency_list[v][u] = self.adjacency_list[v].get(u, 0) + weight
     
     def get_vertices(self):
-        """Retorna a lista de vértices do grafo"""
+        # retorna a lista de vertices do grafo
         return list(self.vertices)
     
     def get_edges(self):
-        """Retorna a lista de arestas do grafo"""
+        # retorna a lista de arestas do grafo
         edges = []
         for u in self.adjacency_list:
             for v, weight in self.adjacency_list[u].items():
@@ -35,11 +35,11 @@ class Graph:
         return edges
     
     def get_neighbors(self, vertex):
-        """Retorna os vizinhos de um vértice"""
+        # retorna os vizinhos de um vertice
         return self.adjacency_list.get(vertex, {})
     
     def __str__(self):
-        """Representação em string do grafo"""
+        # representacao em string do grafo
         result = []
         for vertex in self.adjacency_list:
             connections = []
@@ -49,13 +49,13 @@ class Graph:
         return "\n".join(result)
 
 def clean_name(name):
-    """Padroniza os nomes: maiúsculas e sem espaços extras"""
+    # padroniza os nomes para maiusculas e sem espacos
     if not name or not isinstance(name, str):
         return None
     return name.strip().upper()
 
 def build_graphs_from_csv(filename):
-    """Constrói os dois grafos a partir do arquivo CSV"""
+    # constroi os dois grafos a partir do arquivo csv
     directed_graph = Graph(directed=True)
     undirected_graph = Graph(directed=False)
     
@@ -63,22 +63,15 @@ def build_graphs_from_csv(filename):
         reader = csv.DictReader(file)
         
         for row in reader:
-            # Ignora linhas com diretor ou elenco vazios
             if not row.get('director') or not row.get('cast'):
                 continue
-                
-            # Limpa e processa os diretores
             directors = [clean_name(d) for d in row['director'].split(',') if clean_name(d)]
-            
-            # Limpa e processa o elenco
             cast = [clean_name(actor) for actor in row['cast'].split(',') if clean_name(actor)]
             
-            # Adiciona arestas para o grafo direcionado (atores -> diretores)
             for director in directors:
                 for actor in cast:
                     directed_graph.add_edge(actor, director)
             
-            # Adiciona arestas para o grafo não-direcionado (atores <-> atores)
             for i in range(len(cast)):
                 for j in range(i + 1, len(cast)):
                     undirected_graph.add_edge(cast[i], cast[j])
@@ -86,24 +79,22 @@ def build_graphs_from_csv(filename):
     return directed_graph, undirected_graph
 
 def count_components(graph):
-    """Conta componentes conexas (não-direcionado) ou fortemente conexas (direcionado)"""
+    # conta componentes conexas
     if graph.directed:
         return count_strongly_connected_components(graph)
     else:
         return count_connected_components(graph)
 
 def count_connected_components(graph):
-    """Conta componentes conexas em um grafo não-direcionado"""
+    # conta componentes conexas em grafo nao direcionado
     visited = set()
     count = 0
     
     for vertex in graph.get_vertices():
         if vertex not in visited:
             count += 1
-            # BFS para visitar todos os vértices conectados
             queue = deque([vertex])
             visited.add(vertex)
-            
             while queue:
                 current = queue.popleft()
                 for neighbor in graph.get_neighbors(current):
@@ -114,11 +105,10 @@ def count_connected_components(graph):
     return count
 
 def count_strongly_connected_components(graph):
-    """Conta componentes fortemente conexas em um grafo direcionado usando o algoritmo de Kosaraju"""
+    # algoritmo de kosaraju para grafos direcionados
     visited = set()
     order = []
     
-    # Primeira passada (ordem de término)
     def dfs_first_pass(vertex):
         stack = [(vertex, False)]
         while stack:
@@ -138,13 +128,11 @@ def count_strongly_connected_components(graph):
         if vertex not in visited:
             dfs_first_pass(vertex)
     
-    # Grafo transposto
     transposed = Graph(directed=True)
     for u in graph.adjacency_list:
         for v in graph.adjacency_list[u]:
             transposed.add_edge(v, u)
     
-    # Segunda passada no grafo transposto
     visited = set()
     count = 0
     
@@ -166,9 +154,9 @@ def count_strongly_connected_components(graph):
     return count
 
 def minimum_spanning_tree(graph, start_vertex):
-    """Retorna a Árvore Geradora Mínima (Prim) e seu custo total"""
+    # calcula a arvore geradora minima
     if graph.directed:
-        raise ValueError("MST só pode ser calculada em grafos não-direcionados")
+        raise ValueError("mst so pode ser calculada em grafos nao direcionados")
     
     if start_vertex not in graph.vertices:
         return None, 0
@@ -178,7 +166,6 @@ def minimum_spanning_tree(graph, start_vertex):
     edges = []
     total_cost = 0
     
-    # Inicializa a heap com as arestas do vértice inicial
     for neighbor, weight in graph.get_neighbors(start_vertex).items():
         heapq.heappush(edges, (weight, start_vertex, neighbor))
     
@@ -195,7 +182,7 @@ def minimum_spanning_tree(graph, start_vertex):
     return mst, total_cost
 
 def degree_centrality(graph, vertex):
-    """Calcula a centralidade de grau de um vértice"""
+    # calcula a centralidade de grau
     if vertex not in graph.vertices:
         return 0.0
     
@@ -208,7 +195,7 @@ def degree_centrality(graph, vertex):
     return degree / max_possible_degree
 
 def betweenness_centrality(graph, vertex):
-    """Calcula a centralidade de intermediação de um vértice"""
+    # calcula a centralidade de intermediacao
     if vertex not in graph.vertices:
         return 0.0
     
@@ -219,7 +206,6 @@ def betweenness_centrality(graph, vertex):
     for s in vertices:
         if s == vertex:
             continue
-        # BFS para encontrar todos os caminhos mais curtos de s para outros vértices
         pred = {v: [] for v in vertices}
         dist = {v: -1 for v in vertices}
         sigma = {v: 0 for v in vertices}
@@ -247,23 +233,17 @@ def betweenness_centrality(graph, vertex):
             if w != s:
                 betweenness += delta[w]
     
-    # Normalização
-    if graph.directed:
-        normalization = (n - 1) * (n - 2)
-    else:
-        normalization = (n - 1) * (n - 2) / 2
-    
+    normalization = (n - 1) * (n - 2) if graph.directed else (n - 1) * (n - 2) / 2
     if normalization == 0:
         return 0.0
     
     return betweenness / normalization
 
 def closeness_centrality(graph, vertex):
-    """Calcula a centralidade de proximidade de um vértice"""
+    # calcula a centralidade de proximidade
     if vertex not in graph.vertices:
         return 0.0
     
-    # BFS para calcular as distâncias mais curtas
     distances = {v: -1 for v in graph.vertices}
     distances[vertex] = 0
     queue = deque([vertex])
@@ -275,7 +255,6 @@ def closeness_centrality(graph, vertex):
                 distances[neighbor] = distances[current] + 1
                 queue.append(neighbor)
     
-    # Remove vértices inalcançáveis
     reachable_distances = [d for d in distances.values() if d > 0]
     if not reachable_distances:
         return 0.0
@@ -283,56 +262,40 @@ def closeness_centrality(graph, vertex):
     sum_distances = sum(reachable_distances)
     n = len(reachable_distances)
     
-    # Centralidade de proximidade (harmônica para lidar com grafos não conexos)
     closeness = n / sum_distances
-    
-    # Normalização
-    normalized_closeness = closeness *(n / (len(graph.vertices) - 1))
+    normalized_closeness = closeness * (n / (len(graph.vertices) - 1))
     
     return normalized_closeness
 
-
-
-
-
-
-
-
-
-
 def main():
-    print("Arquivo existe?", os.path.exists('netflix_amazon_disney_tittles.csv'))
-    # Construir os grafos
-    print("Construindo grafos...")
-    directed_graph, undirected_graph = build_graphs_from_csv('../netflix_amazon_disney_tittles.csv')
+    print("diretorio atual:", os.getcwd())
+    print("arquivos no diretorio:", os.listdir('.'))
+    print("arquivo existe?", os.path.exists('netflix_amazon_disney_titles.csv'))
+    print("construindo grafos...")
+    directed_graph, undirected_graph = build_graphs_from_csv('T:/ComplexGraphsAssignment/netflix_amazon_disney_titles.csv')
+
     
-    # Atividade 1: Construção dos grafos
-    print("\n=== Atividade 1 ===")
-    print(f"Grafo direcionado - Vértices: {len(directed_graph.vertices)}, Arestas: {len(directed_graph.get_edges())}")
-    print(f"Grafo não-direcionado - Vértices: {len(undirected_graph.vertices)}, Arestas: {len(undirected_graph.get_edges())}")
+    print("\n=== atividade 1 ===")
+    print(f"grafo direcionado - vertices: {len(directed_graph.vertices)}, arestas: {len(directed_graph.get_edges())}")
+    print(f"grafo nao-direcionado - vertices: {len(undirected_graph.vertices)}, arestas: {len(undirected_graph.get_edges())}")
     
-    # Atividade 2: Contagem de componentes
-    print("\n=== Atividade 2 ===")
-    print(f"Componentes fortemente conexas (grafo direcionado): {count_components(directed_graph)}")
-    print(f"Componentes conexas (grafo não-direcionado): {count_components(undirected_graph)}")
+    print("\n=== atividade 2 ===")
+    print(f"componentes fortemente conexas (grafo direcionado): {count_components(directed_graph)}")
+    print(f"componentes conexas (grafo nao-direcionado): {count_components(undirected_graph)}")
     
-    # Atividade 3: Árvore Geradora Mínima
-    print("\n=== Atividade 3 ===")
+    print("\n=== atividade 3 ===")
     sample_actor = "BOB ODENKIRK"
     mst, mst_cost = minimum_spanning_tree(undirected_graph, sample_actor)
-    print(f"Árvore Geradora Mínima para {sample_actor} - Custo total: {mst_cost}")
+    print(f"arvore geradora minima para {sample_actor} - custo total: {mst_cost}")
     
-    # Atividade 4: Centralidade de Grau
-    print("\n=== Atividade 4 ===")
-    print(f"Centralidade de Grau para {sample_actor}: {degree_centrality(undirected_graph, sample_actor):.4f}")
+    print("\n=== atividade 4 ===")
+    print(f"centralidade de grau para {sample_actor}: {degree_centrality(undirected_graph, sample_actor):.4f}")
     
-    # Atividade 5: Centralidade de Intermediação
-    print("\n=== Atividade 5 ===")
-    print(f"Centralidade de Intermediação para {sample_actor}: {betweenness_centrality(undirected_graph, sample_actor):.4f}")
+    print("\n=== atividade 5 ===")
+    print(f"centralidade de intermediacao para {sample_actor}: {betweenness_centrality(undirected_graph, sample_actor):.4f}")
     
-    # Atividade 6: Centralidade de Proximidade
-    print("\n=== Atividade 6 ===")
-    print(f"Centralidade de Proximidade para {sample_actor}: {closeness_centrality(undirected_graph, sample_actor):.4f}")
+    print("\n=== atividade 6 ===")
+    print(f"centralidade de proximidade para {sample_actor}: {closeness_centrality(undirected_graph, sample_actor):.4f}")
 
-    if __name__ == "__main__":
-     main()
+if __name__ == "__main__":
+    main()
